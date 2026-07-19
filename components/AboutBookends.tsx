@@ -206,7 +206,7 @@ export default function AboutBookends({ scrollProgress }: AboutBookendsProps) {
                   ✦ Email
                 </motion.a>
                 <motion.a
-                  href="https://github.com/chukka-venugopalam"
+                  href="https://github.com/chukka-venugopalam/Grove"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="contact-link"

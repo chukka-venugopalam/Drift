@@ -44,14 +44,14 @@ export default function OffAir() {
         </p>
         <div className="contact-links">
           <a
-            href="mailto:hello@frequency.dev"
+            href="mailto:chukkavenugopalam@gmail.com"
             className="contact-link"
             rel="noopener noreferrer"
           >
             ✦ Email
           </a>
           <a
-            href="https://github.com"
+            href="https://github.com/chukka-venugopalam/Grove"
             target="_blank"
             rel="noopener noreferrer"
             className="contact-link"
