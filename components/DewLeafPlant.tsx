@@ -86,14 +86,27 @@ export function ShaderQuad({ isFocus = false }: { isFocus?: boolean }) {
     uColorRipple: { value: new THREE.Color('#fbbf24') },
   }), []);
 
+  const [isTouch, setIsTouch] = useState(false);
+
+  useEffect(() => {
+    setIsTouch('ontouchstart' in window || navigator.maxTouchPoints > 0);
+  }, []);
+
   useFrame((state) => {
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
-      // Normalise pointer (-1 to 1) into UV space (0 to 1)
-      materialRef.current.uniforms.uMouse.value.set(
-        pointer.x * 0.5 + 0.5,
-        pointer.y * 0.5 + 0.5
-      );
+      if (isTouch) {
+        // Slowly orbit mouse coordinates on touch screens so ripples stay alive
+        const orbitX = 0.5 + Math.sin(state.clock.elapsedTime * 0.5) * 0.25;
+        const orbitY = 0.5 + Math.cos(state.clock.elapsedTime * 0.6) * 0.25;
+        materialRef.current.uniforms.uMouse.value.set(orbitX, orbitY);
+      } else {
+        // Normalise pointer (-1 to 1) into UV space (0 to 1)
+        materialRef.current.uniforms.uMouse.value.set(
+          pointer.x * 0.5 + 0.5,
+          pointer.y * 0.5 + 0.5
+        );
+      }
       // Smoothly lerp uniform colors to current theme configuration
       materialRef.current.uniforms.uColorBase.value.lerp(colors.base, 0.1);
       materialRef.current.uniforms.uColorRipple.value.lerp(colors.ripple, 0.1);

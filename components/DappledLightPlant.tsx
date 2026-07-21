@@ -86,10 +86,26 @@ export function DappleSphere() {
     uColorShadow: { value: new THREE.Color('#02140a') },
   }), []);
 
+  const [isTouch, setIsTouch] = useState(false);
+  const tempMouse = useMemo(() => new THREE.Vector2(), []);
+
+  useEffect(() => {
+    setIsTouch('ontouchstart' in window || navigator.maxTouchPoints > 0);
+  }, []);
+
   useFrame((state) => {
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
-      materialRef.current.uniforms.uMouse.value.lerp(pointer, 0.08);
+      
+      if (isTouch) {
+        // Slowly drift the shadows on touch screens to simulate gentle wind rustling
+        const orbitX = Math.sin(state.clock.elapsedTime * 0.15) * 0.3;
+        const orbitY = Math.cos(state.clock.elapsedTime * 0.2) * 0.3;
+        tempMouse.set(orbitX, orbitY);
+        materialRef.current.uniforms.uMouse.value.lerp(tempMouse, 0.05);
+      } else {
+        materialRef.current.uniforms.uMouse.value.lerp(pointer, 0.08);
+      }
 
       // Dynamically update colors to match theme
       materialRef.current.uniforms.uColorLight.value.lerp(colors.light, 0.1);

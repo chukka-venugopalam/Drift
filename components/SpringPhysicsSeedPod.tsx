@@ -119,6 +119,7 @@ export default function SpringPhysicsSeedPod({ domRef, scrollProgress, onActiveC
             : '0 0 8px rgba(0, 0, 0, 0.4)',
           pointerEvents: 'auto',
           cursor: isDragging ? 'grabbing' : 'grab',
+          touchAction: 'none',
         }}
         animate={
           isNear

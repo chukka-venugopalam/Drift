@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import DollyPath from './DollyPath';
@@ -113,8 +113,8 @@ function seededRandom(seed: number) {
 }
 
 // ─── Native 3D Volumetric Ambient Spore Particles ───
-function AmbientParticles() {
-  const count = 120;
+function AmbientParticles({ isMobile }: { isMobile: boolean }) {
+  const count = isMobile ? 50 : 120;
   const pointsRef = useRef<THREE.Points>(null);
   
   const particles = useMemo(() => {
@@ -133,7 +133,7 @@ function AmbientParticles() {
       });
     }
     return temp;
-  }, []);
+  }, [count]);
 
   const positions = useMemo(() => {
     const arr = new Float32Array(count * 3);
@@ -143,7 +143,7 @@ function AmbientParticles() {
       arr[i * 3 + 2] = p.z;
     });
     return arr;
-  }, [particles]);
+  }, [particles, count]);
 
   useFrame(() => {
     if (!pointsRef.current) return;
@@ -151,6 +151,7 @@ function AmbientParticles() {
     const pos = geo.attributes.position.array as Float32Array;
 
     particles.forEach((p, i) => {
+      if (i >= count) return;
       p.phase += 0.005 * p.speed;
       
       // Drift upward and sway
@@ -194,9 +195,17 @@ export default function GroveScene({ scrollRef }: GroveSceneProps) {
   const seedPodDOMRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [activePlant, setActivePlant] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
   
   const { theme } = useThemeContext();
   const colors = themeColors[theme] || themeColors.dark;
+
+  useEffect(() => {
+    const checkRes = () => setIsMobile(window.innerWidth < 768);
+    checkRes();
+    window.addEventListener('resize', checkRes);
+    return () => window.removeEventListener('resize', checkRes);
+  }, []);
 
   // 15 Depth-layered background foliage silhouette placements
   const foliageData = useMemo(() => [
@@ -272,7 +281,7 @@ export default function GroveScene({ scrollRef }: GroveSceneProps) {
         <GroundPlane color={colors.ground} />
 
         {/* Depth-layered soft foliage backdrops */}
-        {foliageData.map((f, idx) => (
+        {(isMobile ? foliageData.filter((_, idx) => idx % 2 === 0) : foliageData).map((f, idx) => (
           <FoliageCluster
             key={idx}
             position={f.pos}
@@ -282,7 +291,7 @@ export default function GroveScene({ scrollRef }: GroveSceneProps) {
         ))}
 
         {/* Drifting volumetric spores */}
-        <AmbientParticles />
+        <AmbientParticles isMobile={isMobile} />
 
         <DollyPath
           scrollRef={scrollRef}

@@ -140,7 +140,7 @@ interface FocusParticle {
   alpha: number;
 }
 
-function PollenFocusCanvas() {
+function PollenFocusCanvas({ isMobile }: { isMobile: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mouseRef = useRef({ x: -1000, y: -1000 });
   const particlesRef = useRef<FocusParticle[]>([]);
@@ -148,19 +148,22 @@ function PollenFocusCanvas() {
   const { theme } = useThemeContext();
   const colors = themeCanvasColors[theme] || themeCanvasColors.dark;
 
+  const isTouch = typeof window !== 'undefined' ? ('ontouchstart' in window || navigator.maxTouchPoints > 0) : false;
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const w = 360;
-    const h = 360;
+    const size = isMobile ? 220 : 360;
+    const w = size;
+    const h = size;
     canvas.width = w * window.devicePixelRatio;
     canvas.height = h * window.devicePixelRatio;
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
-    const count = 75;
+    const count = isMobile ? 45 : 75; // slightly reduced particle count on mobile for CPU efficiency
     const p = [];
     for (let i = 0; i < count; i++) {
       p.push({
@@ -189,10 +192,19 @@ function PollenFocusCanvas() {
     canvas.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('mouseleave', handleMouseLeave);
 
+    let time = 0;
     const animate = () => {
+      time += 0.025;
       ctx.clearRect(0, 0, w, h);
       const particles = particlesRef.current;
-      const mouse = mouseRef.current;
+      
+      // On touchscreens, orbit a fake cursor so particles actively cluster
+      const mouse = isTouch
+        ? {
+            x: w / 2 + Math.sin(time * 0.6) * (size * 0.18),
+            y: h / 2 + Math.cos(time * 0.5) * (size * 0.18),
+          }
+        : mouseRef.current;
 
       particles.forEach((pt) => {
         const dx = mouse.x - pt.x;
@@ -251,7 +263,7 @@ function PollenFocusCanvas() {
       canvas.removeEventListener('mousemove', handleMouseMove);
       canvas.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [colors]);
+  }, [colors, isMobile, isTouch]);
 
   return (
     <canvas
@@ -265,6 +277,7 @@ function PollenFocusCanvas() {
     />
   );
 }
+
 
 function ClusterFocus() {
   const { theme } = useThemeContext();
@@ -351,6 +364,15 @@ function GlowFocus() {
 // ─── Main Overlay Component ───
 
 export default function FocusCircleOverlay({ activePlant }: FocusCircleOverlayProps) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkRes = () => setIsMobile(window.innerWidth < 860);
+    checkRes();
+    window.addEventListener('resize', checkRes);
+    return () => window.removeEventListener('resize', checkRes);
+  }, []);
+
   const renderFocusAnimation = (idx: number) => {
     switch (idx) {
       case 0:
@@ -358,7 +380,7 @@ export default function FocusCircleOverlay({ activePlant }: FocusCircleOverlayPr
       case 1:
         return <ShaderFocus />;
       case 2:
-        return <PollenFocusCanvas />;
+        return <PollenFocusCanvas isMobile={isMobile} />;
       case 3:
         return <ClusterFocus />;
       case 4:
@@ -391,11 +413,13 @@ export default function FocusCircleOverlay({ activePlant }: FocusCircleOverlayPr
             style={{
               width: '100%',
               maxWidth: 1200,
-              padding: '0 4rem',
+              padding: isMobile ? '1.5rem 1rem' : '0 4rem',
               display: 'flex',
+              flexDirection: isMobile ? 'column' : 'row',
               alignItems: 'center',
-              justifyContent: 'space-between',
+              justifyContent: isMobile ? 'center' : 'space-between',
               pointerEvents: 'none',
+              gap: isMobile ? '1rem' : '2rem',
             }}
           >
             {/* Left side: Large Spotlight Focus Circle */}
@@ -405,8 +429,8 @@ export default function FocusCircleOverlay({ activePlant }: FocusCircleOverlayPr
               exit={{ opacity: 0, scale: 0.7, rotate: 10 }}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               style={{
-                width: 360,
-                height: 360,
+                width: isMobile ? 220 : 360,
+                height: isMobile ? 220 : 360,
                 borderRadius: '50%',
                 border: '2.5px solid var(--accent)',
                 boxShadow: '0 0 45px var(--accent-glow), inset 0 0 30px rgba(0, 0, 0, 0.5)',
@@ -414,6 +438,7 @@ export default function FocusCircleOverlay({ activePlant }: FocusCircleOverlayPr
                 background: 'var(--bg-base)',
                 pointerEvents: 'auto',
                 position: 'relative',
+                margin: isMobile ? '0 auto' : '0',
               }}
             >
               {renderFocusAnimation(activePlant)}
@@ -421,13 +446,14 @@ export default function FocusCircleOverlay({ activePlant }: FocusCircleOverlayPr
 
             {/* Right side: Elegant details card */}
             <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
+              initial={{ opacity: 0, y: isMobile ? 30 : 0, x: isMobile ? 0 : 50 }}
+              animate={{ opacity: 1, y: 0, x: 0 }}
+              exit={{ opacity: 0, y: isMobile ? -20 : 0, x: isMobile ? 0 : -30 }}
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
               style={{
-                width: 410,
-                padding: '2.2rem',
+                width: isMobile ? '100%' : 410,
+                maxWidth: isMobile ? 420 : 'none',
+                padding: isMobile ? '1.4rem' : '2.2rem',
                 background: 'rgba(5, 12, 8, 0.95)',
                 border: '1px solid rgba(255, 255, 255, 0.08)',
                 borderRadius: '12px',
@@ -441,7 +467,7 @@ export default function FocusCircleOverlay({ activePlant }: FocusCircleOverlayPr
               <div
                 style={{
                   fontFamily: 'var(--font-mono)',
-                  fontSize: '0.68rem',
+                  fontSize: isMobile ? '0.6rem' : '0.68rem',
                   color: 'var(--accent)',
                   letterSpacing: '0.15em',
                   textTransform: 'uppercase',
@@ -455,10 +481,10 @@ export default function FocusCircleOverlay({ activePlant }: FocusCircleOverlayPr
               <h2
                 style={{
                   fontFamily: 'var(--font-serif)',
-                  fontSize: '1.9rem',
+                  fontSize: isMobile ? '1.35rem' : '1.9rem',
                   fontWeight: 400,
                   color: '#ffffff',
-                  margin: '0 0 1.2rem 0',
+                  margin: '0 0 1rem 0',
                   lineHeight: 1.15,
                   letterSpacing: '-0.02em',
                 }}
@@ -470,10 +496,10 @@ export default function FocusCircleOverlay({ activePlant }: FocusCircleOverlayPr
               <p
                 style={{
                   fontFamily: 'var(--font-sans)',
-                  fontSize: '0.82rem',
+                  fontSize: isMobile ? '0.78rem' : '0.82rem',
                   lineHeight: 1.6,
                   color: 'var(--text-secondary)',
-                  margin: '0 0 1.5rem 0',
+                  margin: '0 0 1.2rem 0',
                 }}
               >
                 {focusDetails[activePlant].description}
@@ -484,7 +510,7 @@ export default function FocusCircleOverlay({ activePlant }: FocusCircleOverlayPr
                 style={{
                   height: '1px',
                   background: 'rgba(255, 255, 255, 0.08)',
-                  margin: '0 0 1.3rem 0',
+                  margin: '0 0 1.1rem 0',
                 }}
               />
 
@@ -504,7 +530,7 @@ export default function FocusCircleOverlay({ activePlant }: FocusCircleOverlayPr
                 <p
                   style={{
                     fontFamily: 'var(--font-sans)',
-                    fontSize: '0.8rem',
+                    fontSize: isMobile ? '0.75rem' : '0.8rem',
                     lineHeight: 1.5,
                     color: '#ffffff',
                     fontWeight: 300,

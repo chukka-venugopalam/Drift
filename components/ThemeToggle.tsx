@@ -1,11 +1,20 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { useThemeContext } from '@/app/providers';
 import { themes } from '@/lib/themes';
 
 export default function ThemeToggle() {
   const { theme, setTheme } = useThemeContext();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkRes = () => setIsMobile(window.innerWidth < 768);
+    checkRes();
+    window.addEventListener('resize', checkRes);
+    return () => window.removeEventListener('resize', checkRes);
+  }, []);
 
   return (
     <motion.div
@@ -14,12 +23,12 @@ export default function ThemeToggle() {
       transition={{ duration: 0.6, ease: 'easeOut' }}
       style={{
         position: 'fixed',
-        top: '1.5rem',
-        right: '1.5rem',
+        top: isMobile ? '1rem' : '1.5rem',
+        right: isMobile ? '1rem' : '1.5rem',
         zIndex: 100,
         display: 'flex',
-        gap: '0.25rem',
-        padding: '3px',
+        gap: isMobile ? '0.4rem' : '0.25rem',
+        padding: '4px',
         borderRadius: 9999,
         border: '1px solid var(--card-border)',
         background: 'var(--bg-elevated)',
@@ -39,12 +48,12 @@ export default function ThemeToggle() {
             border: 'none',
             background: theme === t.id ? 'var(--accent-glow)' : 'transparent',
             color: theme === t.id ? 'var(--accent)' : 'var(--text-dim)',
-            width: 28,
-            height: 28,
+            width: isMobile ? 36 : 28,
+            height: isMobile ? 36 : 28,
             borderRadius: '50%',
             cursor: 'pointer',
             fontFamily: 'var(--font-mono)',
-            fontSize: '0.65rem',
+            fontSize: isMobile ? '0.75rem' : '0.65rem',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

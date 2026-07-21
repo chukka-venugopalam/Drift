@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface AboutBookendsProps {
@@ -7,8 +8,16 @@ interface AboutBookendsProps {
 }
 
 export default function AboutBookends({ scrollProgress }: AboutBookendsProps) {
+  const [isMobile, setIsMobile] = useState(false);
   const showIntro = scrollProgress < 0.06;
   const showOutro = scrollProgress > 0.94;
+
+  useEffect(() => {
+    const checkRes = () => setIsMobile(window.innerWidth < 768);
+    checkRes();
+    window.addEventListener('resize', checkRes);
+    return () => window.removeEventListener('resize', checkRes);
+  }, []);
 
   return (
     <>
@@ -38,7 +47,9 @@ export default function AboutBookends({ scrollProgress }: AboutBookendsProps) {
               style={{
                 textAlign: 'center',
                 maxWidth: 680,
-                padding: '2.5rem',
+                width: isMobile ? 'calc(100% - 2rem)' : '100%',
+                margin: isMobile ? '1rem' : '0',
+                padding: isMobile ? '1.8rem 1.25rem' : '2.5rem',
                 background: 'rgba(5, 12, 8, 0.82)',
                 border: '1px solid rgba(255, 255, 255, 0.05)',
                 borderRadius: '16px',
@@ -50,7 +61,7 @@ export default function AboutBookends({ scrollProgress }: AboutBookendsProps) {
               <span
                 style={{
                   fontFamily: 'var(--font-mono)',
-                  fontSize: '0.7rem',
+                  fontSize: isMobile ? '0.62rem' : '0.7rem',
                   color: 'var(--accent)',
                   letterSpacing: '0.2em',
                   textTransform: 'uppercase',
@@ -61,7 +72,7 @@ export default function AboutBookends({ scrollProgress }: AboutBookendsProps) {
               <h1
                 style={{
                   fontFamily: 'var(--font-serif)',
-                  fontSize: 'clamp(2.5rem, 5vw, 3.8rem)',
+                  fontSize: 'clamp(1.8rem, 5vw, 3.8rem)',
                   fontWeight: 400,
                   color: '#ffffff',
                   margin: '0.8rem 0 1.2rem 0',
@@ -74,7 +85,7 @@ export default function AboutBookends({ scrollProgress }: AboutBookendsProps) {
               <p
                 style={{
                   fontFamily: 'var(--font-sans)',
-                  fontSize: '0.9rem',
+                  fontSize: isMobile ? '0.8rem' : '0.9rem',
                   color: 'var(--text-secondary)',
                   lineHeight: 1.6,
                   margin: '0 0 2rem 0',
@@ -88,20 +99,27 @@ export default function AboutBookends({ scrollProgress }: AboutBookendsProps) {
                 </span>
               </p>
               
-              {/* Subtle animated down arrow */}
-              <motion.div
+              <div
                 style={{
                   fontFamily: 'var(--font-mono)',
-                  fontSize: '0.65rem',
-                  color: 'var(--accent)',
-                  letterSpacing: '0.15em',
+                  fontSize: '0.58rem',
+                  color: 'var(--text-dim)',
+                  letterSpacing: '0.18em',
                   textTransform: 'uppercase',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
                 }}
-                animate={{ y: [0, 5, 0] }}
-                transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
               >
-                Scroll to explore the garden &darr;
-              </motion.div>
+                <span>Scroll down to enter</span>
+                <motion.span
+                  animate={{ y: [0, 4, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+                >
+                  ↓
+                </motion.span>
+              </div>
             </motion.div>
           </motion.div>
         )}
@@ -133,7 +151,9 @@ export default function AboutBookends({ scrollProgress }: AboutBookendsProps) {
               style={{
                 textAlign: 'center',
                 maxWidth: 620,
-                padding: '2.5rem',
+                width: isMobile ? 'calc(100% - 2rem)' : '100%',
+                margin: isMobile ? '1rem' : '0',
+                padding: isMobile ? '1.8rem 1.25rem' : '2.5rem',
                 background: 'rgba(5, 12, 8, 0.85)',
                 border: '1px solid rgba(255, 255, 255, 0.05)',
                 borderRadius: '16px',
@@ -145,7 +165,7 @@ export default function AboutBookends({ scrollProgress }: AboutBookendsProps) {
               <span
                 style={{
                   fontFamily: 'var(--font-mono)',
-                  fontSize: '0.68rem',
+                  fontSize: isMobile ? '0.62rem' : '0.68rem',
                   color: 'var(--accent)',
                   letterSpacing: '0.15em',
                   textTransform: 'uppercase',
@@ -156,7 +176,7 @@ export default function AboutBookends({ scrollProgress }: AboutBookendsProps) {
               <h2
                 style={{
                   fontFamily: 'var(--font-serif)',
-                  fontSize: '2.2rem',
+                  fontSize: isMobile ? '1.5rem' : '2.2rem',
                   fontWeight: 400,
                   color: '#ffffff',
                   margin: '0.8rem 0 1rem 0',
@@ -169,7 +189,7 @@ export default function AboutBookends({ scrollProgress }: AboutBookendsProps) {
               <p
                 style={{
                   fontFamily: 'var(--font-sans)',
-                  fontSize: '0.88rem',
+                  fontSize: isMobile ? '0.78rem' : '0.88rem',
                   color: 'var(--text-secondary)',
                   lineHeight: 1.6,
                   margin: '0 0 2.2rem 0',
@@ -181,9 +201,12 @@ export default function AboutBookends({ scrollProgress }: AboutBookendsProps) {
               <div
                 style={{
                   display: 'flex',
+                  flexDirection: isMobile ? 'column' : 'row',
                   justifyContent: 'center',
-                  gap: '1.2rem',
+                  alignItems: 'center',
+                  gap: isMobile ? '0.6rem' : '1.2rem',
                   marginBottom: '2.5rem',
+                  width: '100%',
                 }}
               >
                 <motion.a
@@ -193,14 +216,17 @@ export default function AboutBookends({ scrollProgress }: AboutBookendsProps) {
                   whileTap={{ scale: 0.98 }}
                   style={{
                     fontFamily: 'var(--font-sans)',
-                    fontSize: '0.8rem',
+                    fontSize: isMobile ? '0.72rem' : '0.8rem',
                     color: 'var(--text-secondary)',
                     textDecoration: 'none',
-                    padding: '0.6rem 1.3rem',
+                    padding: isMobile ? '0.5rem 1.1rem' : '0.6rem 1.3rem',
                     border: '1px solid var(--border-subtle)',
                     borderRadius: '9999px',
                     background: 'var(--bg-subtle)',
                     transition: 'border-color 0.3s ease, color 0.3s ease',
+                    width: isMobile ? '100%' : 'auto',
+                    maxWidth: isMobile ? 260 : 'none',
+                    textAlign: 'center',
                   }}
                 >
                   ✦ Email
@@ -214,14 +240,17 @@ export default function AboutBookends({ scrollProgress }: AboutBookendsProps) {
                   whileTap={{ scale: 0.98 }}
                   style={{
                     fontFamily: 'var(--font-sans)',
-                    fontSize: '0.8rem',
+                    fontSize: isMobile ? '0.72rem' : '0.8rem',
                     color: 'var(--text-secondary)',
                     textDecoration: 'none',
-                    padding: '0.6rem 1.3rem',
+                    padding: isMobile ? '0.5rem 1.1rem' : '0.6rem 1.3rem',
                     border: '1px solid var(--border-subtle)',
                     borderRadius: '9999px',
                     background: 'var(--bg-subtle)',
                     transition: 'border-color 0.3s ease, color 0.3s ease',
+                    width: isMobile ? '100%' : 'auto',
+                    maxWidth: isMobile ? 260 : 'none',
+                    textAlign: 'center',
                   }}
                 >
                   ✦ GitHub
@@ -235,14 +264,17 @@ export default function AboutBookends({ scrollProgress }: AboutBookendsProps) {
                   whileTap={{ scale: 0.98 }}
                   style={{
                     fontFamily: 'var(--font-sans)',
-                    fontSize: '0.8rem',
+                    fontSize: isMobile ? '0.72rem' : '0.8rem',
                     color: 'var(--text-secondary)',
                     textDecoration: 'none',
-                    padding: '0.6rem 1.3rem',
+                    padding: isMobile ? '0.5rem 1.1rem' : '0.6rem 1.3rem',
                     border: '1px solid var(--border-subtle)',
                     borderRadius: '9999px',
                     background: 'var(--bg-subtle)',
                     transition: 'border-color 0.3s ease, color 0.3s ease',
+                    width: isMobile ? '100%' : 'auto',
+                    maxWidth: isMobile ? 260 : 'none',
+                    textAlign: 'center',
                   }}
                 >
                   ✦ LinkedIn
